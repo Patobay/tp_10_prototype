@@ -1,5 +1,9 @@
 library IEEE;
 use IEEE.std_logic_1164.all;
+use work.ffd_pkg.all;
+use work.det_tiempo_pkg.all;
+use work.sipo_pkg.all;
+
 
 entity receptor_control is
 port(
