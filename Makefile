@@ -1,4 +1,6 @@
-nombre = receptor_control
+ops = --std=08
+arch_cf = work-obj08.cf
+nombre = receptor_remoto
 tb = $(nombre)_tb
 arch_wav = $(nombre).ghw
 wav_ops = --assert-level=none --wave=$(arch_wav)
