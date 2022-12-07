@@ -19,7 +19,7 @@ architecture tb of receptor_remoto_tb is
     end component;
     -- Declaraciones
     -- Constantes
-    constant T_H         : time  := 187.5 us;
+    constant T_H         : time  := 93.75 us; --T_CLK = T_L + T_H = 187.5 us
     constant T_L         : time  := T_H;
     constant T_PULSO     : time  := 562.5 us;
     constant T_BURST     : time  := 16*T_PULSO;
