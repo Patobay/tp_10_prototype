@@ -32,7 +32,8 @@ architecture solucion of receptor_remoto is
     signal val_act, val_sig: std_logic_vector(0 downto 0);
     signal dir_act, dir_sig: std_logic_vector(7 downto 0);
     signal cmd_act, cmd_sig: std_logic_vector(7 downto 0);
-    
+    signal med_ALTO_act, med_ALTO_sig: std_logic_vector(0 downto 0);
+
     
 
 begin
@@ -120,78 +121,60 @@ begin
             clk => clk     ,
             Q   => cmd_act
             );
+    medalto_FF: ffd
+    generic map( N=>1 )
+    port map(
+            rst => rst     ,
+            D   => med_ALTO_sig ,
+            hab => hab     ,
+            clk => clk     ,
+            Q   => med_ALTO_act
+            );
 
 Det_estado: process(rst,med_ALTO,c_act,E_act)
+    
 begin
+
+    E_sig   <= E_act   ;
+    c_sig   <= c_act   ;
+    rd_sig  <= rd_act  ;
+    val_sig <= val_act ;
+    dir_sig <= dir_act ;
+    cmd_sig <= cmd_act ;
+    med_ALTO_sig(0) <= med_ALTO;
+
     if(rst='1') then
         E_sig   <= espera  ;
-        c_sig   <= c_act   ;
-        rd_sig  <= rd_act  ;
-        val_sig <= val_act ;
-        dir_sig <= dir_act ;
-        cmd_sig <= cmd_act ;
     elsif(E_act=espera) then
-        if(rising_edge(med_ALTO) and ((unsigned(T_BAJO)<=52) and (unsigned(T_BAJO)>=42)) and ((unsigned(T_ALTO)<=26) and (unsigned(T_ALTO)>=20))) then
+        if(med_ALTO='1' and med_ALTO_act(0)='0' and ((unsigned(T_BAJO)<=52) and (unsigned(T_BAJO)>=42)) and ((unsigned(T_ALTO)<=26) and (unsigned(T_ALTO)>=20))) then
             E_sig   <= recepcion       ;
             c_sig   <= (others => '0') ;
-            rd_sig  <= rd_act          ;
             val_sig <= "0"             ;
             dir_sig <= (others => '0') ;
             cmd_sig <= (others => '0') ;
-        else
-            E_sig   <= E_act   ;
-            c_sig   <= c_act   ;
-            rd_sig  <= rd_act  ;
-            val_sig <= val_act ;  
-            dir_sig <= dir_act ;
-            cmd_sig <= cmd_act ;
         end if;
 
     elsif(E_act = recepcion) then
-        if(rising_edge(med_ALTO)) then
+        if(med_ALTO='1' and med_ALTO_act(0)='0') then
             if (((unsigned(T_BAJO)<=52) and (unsigned(T_BAJO)>=42)) and ((unsigned(T_ALTO)<=26) and (unsigned(T_ALTO)>=20))) then
                 E_sig   <= recepcion     ;
                 c_sig   <= (others=>'0') ;
-                rd_sig  <= rd_act        ;
                 val_sig <= "0"           ;
-                dir_sig <= dir_act       ;
-                cmd_sig <= cmd_act       ;
             elsif (((unsigned(T_BAJO)<=4) and (unsigned(T_BAJO)>=1)) and ((unsigned(T_ALTO)<=4) and (unsigned(T_ALTO)>=1))) then
                 E_sig   <= guardado                            ;
                 c_sig   <= std_logic_vector(unsigned(c_act)+1) ;
-                rd_sig  <= '0'&rd_act(31 downto 1)             ;
-                val_sig <= val_act                             ; 
-                dir_sig <= dir_act                             ;
-                cmd_sig <= cmd_act                             ;              
+                rd_sig  <= '0'&rd_act(31 downto 1)             ;                                     
             elsif (((unsigned(T_BAJO)<=4) and (unsigned(T_BAJO)>=1)) and ((unsigned(T_ALTO)<=10) and (unsigned(T_ALTO)>=7))) then
                 E_sig   <= guardado                            ;
                 c_sig   <= std_logic_vector(unsigned(c_act)+1) ;
                 rd_sig  <= '1'&rd_act(31 downto 1)             ;
-                val_sig <= val_act                             ;
-                dir_sig <= dir_act                             ;
-                cmd_sig <= cmd_act                             ;
             else                             
                 E_sig   <= espera  ;
-                c_sig   <= c_act   ;
-                rd_sig  <= rd_act  ;
-                val_sig <= val_act ;
-                dir_sig <= dir_act ;
-                cmd_sig <= cmd_act ;
             end if;
-        else
-            E_sig   <= E_act   ;
-            c_sig   <= c_act   ;
-            rd_sig  <= rd_act  ;
-            val_sig <= val_act ;  
-            dir_sig <= dir_act ;
-            cmd_sig <= cmd_act ; 
         end if;           
     else
         if(unsigned(c_act)<32) then
             E_sig   <= recepcion ;
-            c_sig   <= c_act     ;
-            rd_sig  <= rd_act    ;
-            val_sig <= val_act   ;
         else
             E_sig <= espera;
             if(C_act=C_32 and ((rd_act(31 downto 24)=not rd_act(23 downto 16)) and (rd_act(15 downto 8)=not rd_act(7 downto 0)) )) then
