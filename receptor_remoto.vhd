@@ -36,35 +36,36 @@ architecture solucion of receptor_remoto is
     
 
 begin
+
     Tiempo_en_bajo: det_tiempo 
         generic map ( N=>6)
         port map(
-                rst   => rst ,
-                pulso => infrarrojo,
-                hab   => hab ,
-                clk   => clk,
-                med   => med_BAJO,
+                rst   => rst        ,
+                pulso => infrarrojo ,
+                hab   => hab        ,
+                clk   => clk        ,
+                med   => med_BAJO   ,
                 tiempo=> T_BAJO
                 );
 
     Tiempo_en_alto: det_tiempo 
         generic map ( N=>6 )
         port map(
-                rst   => rst ,
-                pulso => not infrarrojo,
-                hab   => hab ,
-                clk   => clk,
-                med   => med_ALTO,
+                rst   => rst            ,
+                pulso => not infrarrojo ,
+                hab   => hab            ,
+                clk   => clk            ,
+                med   => med_ALTO       ,
                 tiempo=> T_ALTO
                 );
 
     ESTADO_FFD: ffd
         generic map( N=>2)
         port map(
-                rst => rst,
-                D   => E_sig,
-                hab => hab,
-                clk => clk,
+                rst => rst   ,
+                D   => E_sig ,
+                hab => hab   ,
+                clk => clk   ,
                 Q   => E_act
                 );
    
@@ -72,10 +73,10 @@ begin
     Registro: ffd
     generic map( N=>32 )
     port map(
-            rst => rst,
-            D   => rd_sig,
-            hab => hab,
-            clk => clk,
+            rst => rst    ,
+            D   => rd_sig ,
+            hab => hab    ,
+            clk => clk    ,
             Q   => rd_act
             );
     
@@ -83,133 +84,132 @@ begin
     Cuenta: ffd
     generic map( N=>6 )
     port map(
-            rst => rst,
-            D   => c_sig,
-            hab => hab,
-            clk => clk,
+            rst => rst   ,
+            D   => c_sig ,
+            hab => hab   ,
+            clk => clk   ,
             Q   => c_act
             );
             
     Valido_FF: ffd
     generic map( N=>1 )
     port map(
-            rst => rst,
-            D   => val_sig,
-            hab => hab,
-            clk => clk,
+            rst => rst     ,
+            D   => val_sig ,
+            hab => hab     ,
+            clk => clk     ,
             Q   => val_act
             );
 
     Dir_FF: ffd
     generic map( N=>8 )
     port map(
-            rst => rst,
-            D   => dir_sig,
-            hab => hab,
-            clk => clk,
+            rst => rst     ,
+            D   => dir_sig ,
+            hab => hab     ,
+            clk => clk     ,
             Q   => dir_act
             );
 
     Cmd_FF: ffd
     generic map( N=>8 )
     port map(
-            rst => rst,
-            D   => cmd_sig,
-            hab => hab,
-            clk => clk,
+            rst => rst     ,
+            D   => cmd_sig ,
+            hab => hab     ,
+            clk => clk     ,
             Q   => cmd_act
             );
 
 Det_estado: process(rst,med_ALTO,c_act,E_act)
 begin
     if(rst='1') then
-        E_sig <= espera;
-        c_sig <= c_act;
-        rd_sig <= rd_act;
-        val_sig <= val_act;
-        dir_sig <= (others=>'0');
-        cmd_sig <= (others=>'0');
-
+        E_sig   <= espera  ;
+        c_sig   <= c_act   ;
+        rd_sig  <= rd_act  ;
+        val_sig <= val_act ;
+        dir_sig <= dir_act ;
+        cmd_sig <= cmd_act ;
     elsif(E_act=espera) then
-        if((med_ALTO='1') and (unsigned(T_BAJO)=48) and (unsigned(T_ALTO)=24)) then
-            E_sig <= recepcion;
-            c_sig <= (others=>'0');
-            rd_sig <= rd_act;
-            val_sig <= "0";
-            dir_sig <= dir_act;
-            cmd_sig <= cmd_act;
+        if(rising_edge(med_ALTO) and ((unsigned(T_BAJO)<=52) and (unsigned(T_BAJO)>=42)) and ((unsigned(T_ALTO)<=26) and (unsigned(T_ALTO)>=20))) then
+            E_sig   <= recepcion       ;
+            c_sig   <= (others => '0') ;
+            rd_sig  <= rd_act          ;
+            val_sig <= "0"             ;
+            dir_sig <= (others => '0') ;
+            cmd_sig <= (others => '0') ;
         else
-            E_sig <= E_act;
-            c_sig <= c_act;
-            rd_sig <= rd_act;
-            val_sig <= val_act;  
-            dir_sig <= dir_act;
-            cmd_sig <= cmd_act;
+            E_sig   <= E_act   ;
+            c_sig   <= c_act   ;
+            rd_sig  <= rd_act  ;
+            val_sig <= val_act ;  
+            dir_sig <= dir_act ;
+            cmd_sig <= cmd_act ;
         end if;
 
     elsif(E_act = recepcion) then
         if(rising_edge(med_ALTO)) then
-            if (unsigned(T_BAJO)=48) and (unsigned(T_ALTO)=24) then
-            E_sig <= recepcion;
-            c_sig <= (others=>'0');
-            rd_sig <= rd_act;
-            val_sig <= "0";
-            dir_sig <= dir_act;
-            cmd_sig <= cmd_act;
-            elsif ((unsigned(T_BAJO)=3)  and (unsigned(T_ALTO)=3)) then
-                E_sig <= guardado;
-                c_sig <= std_logic_vector(unsigned(c_act)+1);
-                rd_sig  <= '0'&rd_act(31 downto 1);
-                val_sig <= val_act; 
-                dir_sig <= dir_act;
-                cmd_sig <= cmd_act;              
-            elsif ((unsigned(T_BAJO)=3)  and (unsigned(T_ALTO)=9)) then
-                E_sig <= guardado;
-                c_sig <= std_logic_vector(unsigned(c_act)+1);
-                rd_sig <= '1'&rd_act(31 downto 1);
-                val_sig <= val_act;
-                dir_sig <= dir_act;
-                cmd_sig <= cmd_act;
+            if (((unsigned(T_BAJO)<=52) and (unsigned(T_BAJO)>=42)) and ((unsigned(T_ALTO)<=26) and (unsigned(T_ALTO)>=20))) then
+                E_sig   <= recepcion     ;
+                c_sig   <= (others=>'0') ;
+                rd_sig  <= rd_act        ;
+                val_sig <= "0"           ;
+                dir_sig <= dir_act       ;
+                cmd_sig <= cmd_act       ;
+            elsif (((unsigned(T_BAJO)<=4) and (unsigned(T_BAJO)>=1)) and ((unsigned(T_ALTO)<=4) and (unsigned(T_ALTO)>=1))) then
+                E_sig   <= guardado                            ;
+                c_sig   <= std_logic_vector(unsigned(c_act)+1) ;
+                rd_sig  <= '0'&rd_act(31 downto 1)             ;
+                val_sig <= val_act                             ; 
+                dir_sig <= dir_act                             ;
+                cmd_sig <= cmd_act                             ;              
+            elsif (((unsigned(T_BAJO)<=4) and (unsigned(T_BAJO)>=1)) and ((unsigned(T_ALTO)<=10) and (unsigned(T_ALTO)>=7))) then
+                E_sig   <= guardado                            ;
+                c_sig   <= std_logic_vector(unsigned(c_act)+1) ;
+                rd_sig  <= '1'&rd_act(31 downto 1)             ;
+                val_sig <= val_act                             ;
+                dir_sig <= dir_act                             ;
+                cmd_sig <= cmd_act                             ;
             else                             
-                E_sig <= espera;
-                c_sig <= c_act;
-                rd_sig <= rd_act;
-                val_sig <= val_act;
-                dir_sig <= dir_act;
-                cmd_sig <= cmd_act;
+                E_sig   <= espera  ;
+                c_sig   <= c_act   ;
+                rd_sig  <= rd_act  ;
+                val_sig <= val_act ;
+                dir_sig <= dir_act ;
+                cmd_sig <= cmd_act ;
             end if;
         else
-            E_sig <= E_act;
-            c_sig <= c_act;
-            rd_sig <= rd_act;
-            val_sig <= val_act;  
-            dir_sig <= dir_act;
-            cmd_sig <= cmd_act; 
+            E_sig   <= E_act   ;
+            c_sig   <= c_act   ;
+            rd_sig  <= rd_act  ;
+            val_sig <= val_act ;  
+            dir_sig <= dir_act ;
+            cmd_sig <= cmd_act ; 
         end if;           
     else
         if(unsigned(c_act)<32) then
-            E_sig <= recepcion;
-            c_sig <= c_act;
-            rd_sig <= rd_act;
-            val_sig <= val_act;
+            E_sig   <= recepcion ;
+            c_sig   <= c_act     ;
+            rd_sig  <= rd_act    ;
+            val_sig <= val_act   ;
         else
             E_sig <= espera;
             if(C_act=C_32 and ((rd_act(31 downto 24)=not rd_act(23 downto 16)) and (rd_act(15 downto 8)=not rd_act(7 downto 0)) )) then
-                val_sig <= "1";
-                dir_sig <= rd_act(7 downto 0);
-                cmd_sig <= rd_act(23 downto 16);
+                val_sig <= "1"                  ;
+                dir_sig <= rd_act(7 downto 0)   ;
+                cmd_sig <= rd_act(23 downto 16) ;
             else
-                val_sig <= "0";            
-                dir_sig <= (others=>'0');
-                cmd_sig <= (others=>'0');
+                val_sig <= "0"           ;            
+                dir_sig <= (others=>'0') ;
+                cmd_sig <= (others=>'0') ;
             end if;
         end if;
     end if;
 end process;
 
 --salida
-valido<=val_act(0);
-dir<=dir_act;
-cmd<=cmd_act;
+valido <= val_act(0) ;
+dir    <= dir_act    ;
+cmd    <= cmd_act    ;
    
 end architecture;
